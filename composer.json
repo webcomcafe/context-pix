@@ -1,0 +1,19 @@
+{
+    "name": "webcomcafe/pix",
+    "description": "SDK para transações no contexto pix",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Webcomcafe\\Pix\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Airton Lopes",
+            "email": "airtonlopes_@hotmail.com"
+        }
+    ],
+    "require": {
+        "guzzlehttp/guzzle": "~6.0"
+    }
+}
