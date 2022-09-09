@@ -1,5 +1,5 @@
 {
-    "name": "webcomcafe/pix",
+    "name": "webcomcafe/context-pix",
     "description": "SDK para transações no contexto pix",
     "type": "library",
     "autoload": {
