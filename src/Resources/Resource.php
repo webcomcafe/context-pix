@@ -159,10 +159,6 @@ abstract class Resource implements ResourceInterface
             'form_params' => ['grant_type'=>$psp->getGrantType(), 'scope'=>$psp->getScope()]
         ]);
 
-        if( isset($obj->error) ) {
-            throw new BadRequestException($obj->error_description ?? $obj->error);
-        }
-
         $timestamp = (new \DateTime)->getTimestamp();
         $token = sprintf('%s.%s/%s %s', $timestamp, $obj->expires_in, $obj->token_type, $obj->access_token);
         $this->sdk->fire('after.auth', [$token]);
@@ -189,7 +185,8 @@ abstract class Resource implements ResourceInterface
             {
                 // Capturando configurações de requisição
                 if( substr($name, 0, 2) == '::' ) {
-                    $options += $value;
+                    $options[$name] = $value;
+                    unset($data[$name]);
                     continue;
                 }
 
@@ -218,7 +215,8 @@ abstract class Resource implements ResourceInterface
      * @param $method
      * @param $path
      * @param $options
-     * @return mixed
+     * @return mixed|\stdClass
+     * @throws BadRequestException
      */
     private function dispatch($method, $path, $options)
     {
@@ -231,6 +229,10 @@ abstract class Resource implements ResourceInterface
             if ($e instanceof  \GuzzleHttp\Exception\ClientException) {
                 $res = $this->resolveResponse($e->getResponse());
             }
+        }
+
+        if( isset($res->error) ) {
+            throw new BadRequestException($res->error_description ?? $res->error);
         }
 
         return $res;

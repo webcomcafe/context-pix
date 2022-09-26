@@ -58,10 +58,10 @@ interface PspInterface
     /**
      * Token de authorização, caso já tenha sido gerado
      *
-     * @param string $basicToken
+     * @param string $token
      * @return mixed
      */
-    public function setAuthorizationToken(string $basicToken): PspInterface;
+    public function setAuthorizationToken(string $token): PspInterface;
 
     /**
      * Retorna o token de autorização

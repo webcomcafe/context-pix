@@ -247,12 +247,12 @@ trait PspTrait
     /**
      * Token de autorização
      *
-     * @param string $basicToken
+     * @param string $token
      * @return PspInterface
      */
-    public function setAuthorizationToken(string $basicToken): PspInterface
+    public function setAuthorizationToken(string $token): PspInterface
     {
-        $this->authorizationToken = $basicToken;
+        $this->authorizationToken = $token;
 
         return $this;
     }
