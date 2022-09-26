@@ -225,6 +225,16 @@ trait PspTrait
     }
 
     /**
+     * Retorna a versão da API
+     *
+     * @return string
+     */
+    public function getAPIVersion(): string
+    {
+        return $this->version;
+    }
+
+    /**
      * Retorna o nome do campo que representa o txid no PSP
      *
      * @return string

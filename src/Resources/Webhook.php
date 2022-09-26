@@ -17,7 +17,8 @@ class Webhook extends Resource
      * @var \string[][]
      */
     protected $endpoints = [
-        '/{chave}' => ['find','update','remove']
+        '/webhook/{chave}' => ['update', 'find', 'remove'],
+        '/webhook' => ['all']
     ];
 
     /**
@@ -28,5 +29,15 @@ class Webhook extends Resource
     public function change(array $data)
     {
         throw new InvalidImplementException('O método Webhook::change não existe no contexto pix');
+    }
+
+    /**
+     * @param array $data
+     * @return mixed|\stdClass|void
+     * @throws InvalidImplementException
+     */
+    public function create(array $data)
+    {
+        throw new InvalidImplementException('O método Webhook::create não existe no contexto pix');
     }
 }

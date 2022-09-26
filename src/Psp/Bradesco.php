@@ -51,5 +51,5 @@ class Bradesco extends Psp
      *
      * @var string $version
      */
-    protected $version = 'v2';
+    protected $version = '/v2';
 }

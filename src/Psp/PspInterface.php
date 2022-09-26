@@ -79,6 +79,13 @@ interface PspInterface
     public function setAPIVersion(string $version): PspInterface;
 
     /**
+     * Retorna o path da versão
+     *
+     * @return string
+     */
+    public function getAPIVersion(): string;
+
+    /**
      * Caminho para autenticação
      *
      * @param string $authenticatePath

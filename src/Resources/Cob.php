@@ -17,7 +17,8 @@ class Cob extends Resource
      * @var \string[][]
      */
     protected $endpoints = [
-        '/{txid}' => ['find','update','change','remove']
+        '/cob/{txid}' => ['find', 'update', 'change', 'remove'],
+        '/cob' => ['create', 'all']
     ];
 
     /**

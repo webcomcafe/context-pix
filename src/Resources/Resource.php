@@ -21,13 +21,6 @@ abstract class Resource implements ResourceInterface
     protected $api;
 
     /**
-     * Caminho do recurso
-     *
-     * @var string $resourceBasePath
-     */
-    protected $resourceBasePath;
-
-    /**
      * Path para criar recurso
      *
      * @var string $resourceCreatePATH
@@ -37,9 +30,9 @@ abstract class Resource implements ResourceInterface
     /**
      * Path para listar recursos
      *
-     * @var string $resourceListPATH
+     * @var string $resourceAllPath
      */
-    protected $resourceListPath = '';
+    protected $resourceAllPath = '';
 
     /**
      * Path para buscar um recurso
@@ -96,8 +89,9 @@ abstract class Resource implements ResourceInterface
 
         // Definindo cliente HTTP
         $this->api = new Client([
-            'timeout' => 2.0,
+            'timeout' => 10.0,
             'base_uri' => $this->sdk->getPsp()->getBaseUrl(),
+            'cert' => $this->sdk->getPsp()->getCertificate(),
             'headers' => [
                 'Cache-Control' => 'no-cache',
                 'Content-Type'  => 'application/json',
@@ -112,6 +106,12 @@ abstract class Resource implements ResourceInterface
         }
     }
 
+    /**
+     * Define credenciais de autenticação
+     *
+     * @param array $config
+     * @throws BadRequestException
+     */
     private function setCredentials(array &$config)
     {
         $token = $this->sdk->getPsp()->getAuthorizationToken();
@@ -124,6 +124,8 @@ abstract class Resource implements ResourceInterface
     }
 
     /**
+     * Retorna se um token é válido
+     *
      * @param string $accessToken
      * @return bool
      */
@@ -134,13 +136,15 @@ abstract class Resource implements ResourceInterface
 
         $now = new \DateTime;
         $end = new \DateTime;
-        $end->setTimestamp($timestamp)->modify("+ $timer seconds");
+        $end->setTimestamp($timestamp)->modify("+{$timer}seconds");
 
+        // Se a data atual($now) for maior que a data de expiração($end), então
+        // o token expirou, caso contrário é válido
         return $now < $end;
     }
 
     /**
-     * Realiza um processo de autenticação
+     * Realiza um processo de autenticação e obtenção do access token
      *
      * @return string
      * @throws BadRequestException
@@ -151,7 +155,6 @@ abstract class Resource implements ResourceInterface
         $basic = 'Basic '.base64_encode($psp->getClientId().':'.$psp->getClientSecret());
 
         $obj = $this->dispatch('POST', $psp->getAPIAuthenticationPath(), [
-            'cert' => $psp->getCertificate(),
             'headers' => ['Authorization'=>$basic, 'Content-type'=>'application/x-www-form-urlencoded'],
             'form_params' => ['grant_type'=>$psp->getGrantType(), 'scope'=>$psp->getScope()]
         ]);
@@ -184,6 +187,7 @@ abstract class Resource implements ResourceInterface
 
             foreach ($data as $name => $value)
             {
+                // Capturando configurações de requisição
                 if( substr($name, 0, 2) == '::' ) {
                     $options += $value;
                     continue;
@@ -201,6 +205,8 @@ abstract class Resource implements ResourceInterface
                     unset($data[$name]);
                 }
             }
+
+            $options['body'] = json_encode($data);
         }
 
         return $this->dispatch($verb, $this->getResourcePath($path), $options);
@@ -253,14 +259,14 @@ abstract class Resource implements ResourceInterface
     /**
      * Retorna o path do recurso
      *
-     * @param string $sufix
+     * @param string $resourceBasePath
      * @return string
      */
-    protected function getResourcePath(string $sufix): string
+    protected function getResourcePath(string $resourceBasePath): string
     {
-        $resourcePath = $this->resourceBasePath ?? '/'.substr(strrchr(get_class($this), '\\'), 1);
+        $version = $this->sdk->getPsp()->getAPIVersion();
 
-        return strtolower($resourcePath.$sufix);
+        return strtolower($version.$resourceBasePath);
     }
 
     /**
@@ -282,7 +288,7 @@ abstract class Resource implements ResourceInterface
      */
     public function all(array $data = [])
     {
-        return $this->req('GET', $this->resourceListPath, $data);
+        return $this->req('GET', $this->resourceAllPath, $data);
     }
 
     /**
