@@ -63,20 +63,18 @@ trait PspTrait
     protected $version;
 
     /**
-     * Campo que representa o txid
+     * Ambiente de execução
      *
-     * @var string $txKey
+     * false = produção
+     * true = homologação
+     *
+     * @var bool $productionEnv
      */
-    protected $txKey;
+    protected $productionEnv = false;
 
     /**
-     * Ambiente de teste
+     * Token de autorização
      *
-     * @var bool $test
-     */
-    protected $test = false;
-
-    /**
      * @var string $authorizationToken
      */
     protected $authorizationToken;
@@ -103,21 +101,31 @@ trait PspTrait
      * @param bool $env
      * @return void
      */
-    public function setAsTest(bool $env): PspInterface
+    public function setAsProdEnv(bool $env): PspInterface
     {
-        $this->test = $env;
+        $this->productionEnv = $env;
 
         return $this;
     }
 
     /**
-     * Retorna URL de produção ou homologação
+     * Retorna o ambiente de execução
+     *
+     * @return bool
+     */
+    public function getEnv(): bool
+    {
+        return $this->productionEnv;
+    }
+
+    /**
+     * Retorna URL base conforme o ambiente de execução
      *
      * @return string
      */
     public function getBaseUrl(): string
     {
-        $baseUrl = !$this->test ? $this->baseUrl : $this->baseUrlH;
+        $baseUrl = $this->productionEnv ? $this->baseUrl : $this->baseUrlH;
 
         return trim($baseUrl,'/');
     }
@@ -232,16 +240,6 @@ trait PspTrait
     public function getAPIVersion(): string
     {
         return $this->version;
-    }
-
-    /**
-     * Retorna o nome do campo que representa o txid no PSP
-     *
-     * @return string
-     */
-    public function getTxKey(): string
-    {
-        return $this->txKey;
     }
 
     /**

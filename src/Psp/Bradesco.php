@@ -40,13 +40,6 @@ class Bradesco extends Psp
     protected $authenticatePath = '/auth/server/oauth/token';
 
     /**
-     * Campo que representa o txid no PSP
-     *
-     * @var string $txKey
-     */
-    protected $txKey = 'tx_id';
-
-    /**
      * Versão virgente da API
      *
      * @var string $version

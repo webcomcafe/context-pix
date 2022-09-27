@@ -5,12 +5,19 @@ namespace Webcomcafe\Pix\Psp;
 interface PspInterface
 {
     /**
-     * Definir o ambiente como teste
+     * Definir o ambiente de execução
      *
      * @param bool $env
      * @return mixed
      */
-    public function setAsTest(bool $env): PspInterface;
+    public function setAsProdEnv(bool $env): PspInterface;
+
+    /**
+     * Retorna se o ambiente é produção(true) ou homologação(false)
+     *
+     * @return bool
+     */
+    public function getEnv(): bool;
 
     /**
      * ClientId obtido junto ao PSP
@@ -130,6 +137,4 @@ interface PspInterface
      * @return array
      */
     public function getCertificate(): array;
-
-
 }

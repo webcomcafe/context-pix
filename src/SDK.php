@@ -43,16 +43,6 @@ class SDK
     }
 
     /**
-     * Retorna o token de autorização
-     *
-     * @return string
-     */
-    public function getAuthorizationToken(): string
-    {
-        return '';
-    }
-
-    /**
      * @return void
      */
     public function seAsGlobal()

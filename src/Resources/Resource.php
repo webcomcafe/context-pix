@@ -91,6 +91,7 @@ abstract class Resource implements ResourceInterface
         $this->api = new Client([
             'timeout' => 10.0,
             'base_uri' => $this->sdk->getPsp()->getBaseUrl(),
+            'verify' => $this->sdk->getPsp()->getEnv(),
             'cert' => $this->sdk->getPsp()->getCertificate(),
             'headers' => [
                 'Cache-Control' => 'no-cache',
