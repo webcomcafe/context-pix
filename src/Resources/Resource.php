@@ -229,18 +229,15 @@ abstract class Resource implements ResourceInterface
             $msg = $e->getMessage();
 
             if ($e instanceof  \GuzzleHttp\Exception\ClientException) {
-                $err = $this->resolveResponse($e->getResponse());
+                $e = $this->resolveResponse($e->getResponse());
 
-                if( isset($err->status) ) {
-                    $error = isset($err->violacoes) ? $err->violacoes[0]->razao : $err->detail;
-                    $msg = $error ?? $err->error;
-                    $code = $err->status;
+                if( isset($e->status) ) {
+                    $code = $e->status;
+                    $msg = isset($e->violacoes) ? $e->violacoes[0]->razao : $e->detail;
                 }
             }
 
-            if( isset($err->error) ) {
-                throw new BadRequestException($msg, $code);
-            }
+            throw new BadRequestException($msg, $code);
         }
     }
 
@@ -255,13 +252,7 @@ abstract class Resource implements ResourceInterface
     {
         $content = $response->getBody()->getContents();
 
-        $result = json_decode($content);
-
-        if( $response->getStatusCode() > 300 ) {
-            $result->error = true;
-        }
-
-        return $result;
+        return json_decode($content);
     }
 
     /**
