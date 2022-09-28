@@ -216,27 +216,32 @@ abstract class Resource implements ResourceInterface
      * @param $method
      * @param $path
      * @param $options
-     * @return mixed|\stdClass
+     * @return mixed|void
      * @throws BadRequestException
      */
     private function dispatch($method, $path, $options)
     {
         try {
             $res = $this->api->request($method, $path, $options);
-            $res = $this->resolveResponse($res);
+            return $this->resolveResponse($res);
         } catch (\Throwable $e) {
-            $res = new \stdClass();
-            $res->error = $e->getMessage();
+            $code = $e->getCode();
+            $msg = $e->getMessage();
+
             if ($e instanceof  \GuzzleHttp\Exception\ClientException) {
-                $res = $this->resolveResponse($e->getResponse());
+                $err = $this->resolveResponse($e->getResponse());
+
+                if( isset($err->status) ) {
+                    $error = isset($err->violacoes) ? $err->violacoes[0]->razao : $err->detail;
+                    $msg = $error ?? $err->error;
+                    $code = $err->status;
+                }
+            }
+
+            if( isset($err->error) ) {
+                throw new BadRequestException($msg, $code);
             }
         }
-
-        if( isset($res->error) ) {
-            throw new BadRequestException($res->error_description ?? $res->error);
-        }
-
-        return $res;
     }
 
 
