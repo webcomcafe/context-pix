@@ -8,6 +8,12 @@ use Psr\Http\Message\ResponseInterface;
 use Webcomcafe\Pix\Exceptions\BadRequestException;
 use Webcomcafe\Pix\SDK;
 
+/**
+ * Classe Resource que possui todos os métodos de acesso aos recursos da api pix
+ *
+ * @author Airton Lopes <webcomcafe@outlook.com>
+ * @copyright 2022
+ */
 abstract class Resource implements ResourceInterface
 {
     /**
@@ -25,42 +31,42 @@ abstract class Resource implements ResourceInterface
      *
      * @var string $resourceCreatePATH
      */
-    protected $resourceCreatePath = '';
+    protected $resourceCreatePath;
 
     /**
      * Path para listar recursos
      *
      * @var string $resourceAllPath
      */
-    protected $resourceAllPath = '';
+    protected $resourceAllPath;
 
     /**
      * Path para buscar um recurso
      *
      * @var string $resourceFindPATH
      */
-    protected $resourceFindPath = '';
+    protected $resourceFindPath;
 
     /**
      * Path para atualizar um recurso
      *
      * @var string $resourceUpdatePath
      */
-    protected $resourceUpdatePath = '';
+    protected $resourceUpdatePath;
 
     /**
      * Caminho de mudança em um recurso
      *
      * @var string $resourceChangePath
      */
-    protected $resourceChangePath = '';
+    protected $resourceChangePath;
 
     /**
      * Path para remover um recurso
      *
      * @var string $resourceRemovePath
      */
-    protected $resourceRemovePath = '';
+    protected $resourceRemovePath;
 
     /**
      * Endpoints para realização de cada operação
@@ -74,7 +80,7 @@ abstract class Resource implements ResourceInterface
      */
     final public function __construct()
     {
-        $this->boot();
+        $this->config();
     }
 
     /**
@@ -82,7 +88,7 @@ abstract class Resource implements ResourceInterface
      *
      * @return void
      */
-    private function boot()
+    private function config()
     {
         // Recuperando SDK
         $this->sdk = SDK::getInstance();
@@ -102,7 +108,8 @@ abstract class Resource implements ResourceInterface
         // Obtendo paths do recurso
         foreach ($this->endpoints as $path => $actions) {
             foreach ($actions as $action) {
-                $this->{'resource'.ucfirst($action).'Path'} = $path;
+                $name = 'resource'.ucfirst($action).'Path';
+                $this->$name = $this->$name ?? $path;
             }
         }
     }
@@ -155,16 +162,17 @@ abstract class Resource implements ResourceInterface
         $psp = $this->sdk->getPsp();
         $basic = 'Basic '.base64_encode($psp->getClientId().':'.$psp->getClientSecret());
 
-        $obj = $this->dispatch('POST', $psp->getAPIAuthenticationPath(), [
+        $res = $this->request('POST', $psp->getAPIAuthenticationPath(), [
             'headers' => ['Authorization'=>$basic, 'Content-type'=>'application/x-www-form-urlencoded'],
             'form_params' => ['grant_type'=>$psp->getGrantType(), 'scope'=>$psp->getScope()]
         ]);
 
-        $timestamp = (new \DateTime)->getTimestamp();
-        $token = sprintf('%s.%s/%s %s', $timestamp, $obj->expires_in, $obj->token_type, $obj->access_token);
-        $this->sdk->fire('after.auth', [$token]);
+        $now = (new \DateTime)->getTimestamp();
+        $token = "{$res->token_type} {$res->access_token}";
+        $storage = sprintf('%s.%s/%s', $now, $res->expires_in, $token);
+        $this->sdk->fire('after.auth', [$storage]);
 
-        return "{$obj->token_type} {$obj->access_token}";
+        return $token;
     }
 
     /**
@@ -173,9 +181,10 @@ abstract class Resource implements ResourceInterface
      * @param string $verb
      * @param string $path
      * @param array $data
-     * @return mixed
+     * @return mixed|void
+     * @throws BadRequestException
      */
-    protected function req(string $verb, string $path = '', array $data = [])
+    protected function make(string $verb, string $path = '', array $data = [])
     {
         $options = [];
         $this->setCredentials($options);
@@ -185,7 +194,7 @@ abstract class Resource implements ResourceInterface
             foreach ($data as $name => $value)
             {
                 // Capturando configurações de requisição
-                if( substr($name, 0, 2) == '::' ) {
+                if( substr($name, 0, 2) == '@' ) {
                     $options[$name] = $value;
                     unset($data[$name]);
                     continue;
@@ -207,7 +216,7 @@ abstract class Resource implements ResourceInterface
             $options['body'] = json_encode($data);
         }
 
-        return $this->dispatch($verb, $this->getResourcePath($path), $options);
+        return $this->request($verb, $this->getResourcePath($path), $options);
     }
 
     /**
@@ -219,7 +228,7 @@ abstract class Resource implements ResourceInterface
      * @return mixed|void
      * @throws BadRequestException
      */
-    private function dispatch($method, $path, $options)
+    private function request($method, $path, $options)
     {
         try {
             $res = $this->api->request($method, $path, $options);
@@ -276,7 +285,7 @@ abstract class Resource implements ResourceInterface
      */
     public function create(array $data)
     {
-        return $this->req('POST', $this->resourceCreatePath, $data);
+        return $this->make('POST', $this->resourceCreatePath, $data);
     }
 
     /**
@@ -287,7 +296,7 @@ abstract class Resource implements ResourceInterface
      */
     public function all(array $data = [])
     {
-        return $this->req('GET', $this->resourceAllPath, $data);
+        return $this->make('GET', $this->resourceAllPath, $data);
     }
 
     /**
@@ -298,7 +307,7 @@ abstract class Resource implements ResourceInterface
      */
     public function find(array $data)
     {
-        return $this->req('GET', $this->resourceFindPath, $data);
+        return $this->make('GET', $this->resourceFindPath, $data);
     }
 
     /**
@@ -309,7 +318,7 @@ abstract class Resource implements ResourceInterface
      */
     public function update(array $data)
     {
-        return $this->req('PUT', $this->resourceUpdatePath, $data);
+        return $this->make('PUT', $this->resourceUpdatePath, $data);
     }
 
     /**
@@ -320,7 +329,7 @@ abstract class Resource implements ResourceInterface
      */
     public function change(array $data)
     {
-        return $this->req('PATCH', $this->resourceChangePath, $data);
+        return $this->make('PATCH', $this->resourceChangePath, $data);
     }
 
     /**
@@ -331,6 +340,6 @@ abstract class Resource implements ResourceInterface
      */
     public function remove(array $data)
     {
-        return $this->req('DELETE', $this->resourceRemovePath, $data);
+        return $this->make('DELETE', $this->resourceRemovePath, $data);
     }
 }

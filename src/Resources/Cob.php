@@ -5,9 +5,10 @@ namespace Webcomcafe\Pix\Resources;
 use Webcomcafe\Pix\Exceptions\InvalidImplementException;
 
 /**
- * Classe Cob Implementa um recurso de cobrança pix
+ * Reúne métodos destinados a lidar com gerenciamento de cobranças imediatas
  *
  * @author Airton Lopes <webcocmafe@outlook.com>
+ * @copyright 2022
  */
 class Cob extends Resource
 {
