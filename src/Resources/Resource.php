@@ -120,7 +120,7 @@ abstract class Resource implements ResourceInterface
      * @param array $config
      * @throws BadRequestException
      */
-    private function setCredentials(array &$config)
+    private function checkForCredentials(array &$config)
     {
         $token = $this->sdk->getPsp()->getAuthorizationToken();
 
@@ -187,7 +187,7 @@ abstract class Resource implements ResourceInterface
     protected function make(string $verb, string $path = '', array $data = [])
     {
         $options = [];
-        $this->setCredentials($options);
+        $this->checkForCredentials($options);
 
         if( !empty($data)) {
 
@@ -242,11 +242,11 @@ abstract class Resource implements ResourceInterface
 
                 if( isset($e->status) ) {
                     $code = $e->status;
-                    $msg = isset($e->violacoes) ? $e->violacoes[0]->razao : $e->detail;
+                    $msg = isset($e->violacoes) ? $e->violacoes[0]->razao : $e->detail ?? $e->title;
                 }
             }
 
-            throw new BadRequestException($msg, $code);
+            throw new BadRequestException($msg, $code > 0 ? $code : 500);
         }
     }
 
