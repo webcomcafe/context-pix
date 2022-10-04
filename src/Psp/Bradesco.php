@@ -37,7 +37,7 @@ class Bradesco extends Psp
      *
      * @var string $authenticatePath
      */
-    protected $authenticatePath = '/auth/server/oauth/token';
+    protected $authenticatePath = '/oauth/token';
 
     /**
      * Versão virgente da API

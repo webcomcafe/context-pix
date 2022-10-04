@@ -93,17 +93,22 @@ abstract class Resource implements ResourceInterface
         // Recuperando SDK
         $this->sdk = SDK::getInstance();
 
-        // Definindo cliente HTTP
-        $this->api = new Client([
+        $config = [
             'timeout' => 10.0,
             'base_uri' => $this->sdk->getPsp()->getBaseUrl(),
             'verify' => $this->sdk->getPsp()->getEnv(),
-            'cert' => $this->sdk->getPsp()->getCertificate(),
             'headers' => [
                 'Cache-Control' => 'no-cache',
                 'Content-Type'  => 'application/json',
             ]
-        ]);
+        ];
+
+        if( $cert = $this->sdk->getPsp()->getCertificate() ) {
+            $config['cert'] = $cert;
+        }
+
+        // Definindo cliente HTTP
+        $this->api = new Client($config);
 
         // Obtendo paths do recurso
         foreach ($this->endpoints as $path => $actions) {
